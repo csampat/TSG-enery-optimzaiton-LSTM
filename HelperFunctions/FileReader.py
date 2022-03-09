@@ -6,7 +6,8 @@ import tensorflow as tf
 from sklearn import metrics
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from tensorflow.keras import models
-
+from keras.regularizers import L1L2
+from keras.optimizers import Adam,Adadelta,Adagrad
 
 class FileReader:
 
@@ -64,22 +65,23 @@ class FileReader:
             tf.keras.layers.Dense(units=horizon),
         ])
         lstm_model.compile(optimizer=optimizer1, loss=loss1)
-        lstm_model.summary()
+        # lstm_model.summary()
 
         return lstm_model
     
-    def model_config_lstm1(self,x_train,y_train,lstm_1,lstm_2,dropout,optimizer1='adam',loss1='mse'):
+    def model_config_lstm1(self,x_train,y_train,lstm_1,lstm_2,dropout,lr,optimizer1='adam',loss1='mse'):
         lstm_model = tf.keras.models.Sequential([
-            tf.keras.layers.LSTM(lstm_1, activation='sigmoid', return_sequences=False,input_shape=(x_train.shape[1],x_train.shape[2])),
-            # tf.keras.layers.LSTM(lstm_2, activation='relu', return_sequences=True),
+            tf.keras.layers.LSTM(lstm_1, activation='sigmoid', return_sequences=False, bias_regularizer=L1L2(l1=0.01, l2=0.075), input_shape=(x_train.shape[1],x_train.shape[2])),
+            # tf.keras.layers.Dropout(dropout),
+            # tf.keras.layers.LSTM(lstm_2, activation='relu',bias_regularizer=L1L2(l1=0.01, l2=0.01), return_sequences=False),
             # tf.keras.layers.LSTM(lstm_2, activation='relu', return_sequences=False),
             tf.keras.layers.Dropout(dropout),
             # tf.keras.layers.Dense(dense_1, activation='relu'),
             # tf.keras.layers.Dense(20, activation='tanh')
             tf.keras.layers.Dense(y_train.shape[2]),
         ])
-        lstm_model.compile(optimizer=optimizer1, loss=loss1)
-        lstm_model.summary()
+        lstm_model.compile(optimizer=Adagrad(learning_rate=lr), loss=loss1)
+        # lstm_model.summary()
 
         return lstm_model
 
